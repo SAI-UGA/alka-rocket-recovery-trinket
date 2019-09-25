@@ -13,7 +13,7 @@ LiquidCrystal_I2C lcd = LiquidCrystal_I2C(0x27, 16, 2);
 Adafruit_MPL3115A2 baro = Adafruit_MPL3115A2();
 
 // First time set up
-void setup() 
+void setup()
 {
     OCR0A = 0xAF;
     TIMSK |= _BV(OCIE0A);
@@ -29,7 +29,7 @@ void setup()
 }
 
 // Control loop for our Trinket
-void loop() 
+void loop()
 {
   // launch detection
   bool start = false;
@@ -46,7 +46,7 @@ void loop()
     {
       // activating the mechanical release system
       myServo1.write(90);
-      // writing our maxHeight to the display 
+      // writing our maxHeight to the display
       write(maxHeight);
       // traps the program in an infinite loop, essentially putting the trinket to 'sleep'
       while(true)
@@ -80,7 +80,7 @@ double getCurrentHeight()
 }
 
 //Displays the max height
-void write(double maxHeight) 
+void write(double maxHeight)
 {
   lcd.write("Max Height:");
   lcd.setCursor(0,1);
@@ -89,13 +89,17 @@ void write(double maxHeight)
 }
 
 // Gets the velocity of the Rocket (in ft/ms)
-double checkVelocity() 
+double checkVelocity()
 {
   double velocity = 0;
-  double initalTime = millis()/1000;
-  double deltaTime = (millis()/1000) - initalTime;
+  //gets the height in feet
   double altimeterIntital = getCurrentHeight();
-  velocity = (getCurrentHeight() - altimeterIntital)/deltaTime; 
+  //gets the current time milliseconds
+  double initalTime = millis()/1000;
+  //find the change in time between the last mills call
+  double deltaTime = (millis()/1000) - initalTime;
+  //calculates the "instintanious" rate of change of the rocket
+  velocity = (getCurrentHeight() - altimeterIntital)/deltaTime;
   velocity = velocity / 1000; // converting the velocity to ft/s
   setMaxHeight(getCurrentHeight());
   return velocity;
