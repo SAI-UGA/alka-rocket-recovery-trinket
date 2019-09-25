@@ -8,6 +8,7 @@
 Adafruit_SoftServo myServo1;
 double maxHeight = 0;
 double currentHeight = 0;
+double velocity = 0;
 LiquidCrystal_I2C lcd = LiquidCrystal_I2C(0x27, 16, 2);
 Adafruit_MPL3115A2 baro = Adafruit_MPL3115A2();
 
@@ -30,6 +31,29 @@ void setup()
 // Control loop for our Trinket
 void loop() 
 {
+  // launch detection
+  bool start = false;
+  double startVelocity = 3.28084; // in ft/s (1 m/s)
+  if (checkVelocity() >= startVelocity)
+  {
+    start = true;
+  }
+
+  while (start)
+  {
+    velocity = checkVelocity();
+    if (velocity < 0)
+    {
+      // activating the mechanical release system
+      myServo1.write(90);
+      // writing our maxHeight to the display 
+      write(maxHeight);
+      // traps the program in an infinite loop, essentially putting the trinket to 'sleep'
+      while(true)
+      {
+      }
+    }
+  }
 
 }
 
@@ -64,14 +88,15 @@ void write(double maxHeight)
   lcd.write(str);
 }
 
-// Gets the veolocity of the Rocket
+// Gets the velocity of the Rocket (in ft/ms)
 double checkVelocity() 
 {
   double velocity = 0;
   double initalTime = millis()/1000;
   double deltaTime = (millis()/1000) - initalTime;
   double altimeterIntital = getCurrentHeight();
-  velocity = (getCurrentHeight() - altimeterIntital)/deltaTime;
+  velocity = (getCurrentHeight() - altimeterIntital)/deltaTime; 
+  velocity = velocity / 1000; // converting the velocity to ft/s
   setMaxHeight(getCurrentHeight());
   return velocity;
 }
