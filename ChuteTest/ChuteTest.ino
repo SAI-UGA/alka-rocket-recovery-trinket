@@ -1,31 +1,31 @@
-//look into changing the delay to millis
-
-#include <TinyWireM.h>
-#include <LiquidCrystal_I2C.h>
+#include <Wire.h>
+#include <Adafruit_SSD1306.h>
+#include <Adafruit_GFX.h>
 #include <Adafruit_MPL3115A2.h>
-#include <Adafruit_SoftServo.h>
+#include <Servo.h>
 
-Adafruit_SoftServo myServo1;
+Servo myServo1;
 double maxHeight = 0;
 double currentHeight = 0;
 double velocity = 0;
-LiquidCrystal_I2C lcd = LiquidCrystal_I2C(0x27, 16, 2);
+double baseHeight = 0;
+Adafruit_SSD1306 display = Adafruit_SSD1306(128, 32, &Wire, -1);
 Adafruit_MPL3115A2 baro = Adafruit_MPL3115A2();
 
-// First time set up
+// Boot setup
 void setup()
 {
-    OCR0A = 0xAF;
-    TIMSK |= _BV(OCIE0A);
-
     // Attaching the servo output to pin #1
-    myServo1.attach(1);
-    // Begin TinyWireM to use I2C
-    TinyWireM.begin();
-    // LCD setup (changing to OLED soon)
-    lcd.begin();
-    lcd.backlight();
-    lcd.setCursor(0,0);
+    myServo1.attach(3);
+    // starting the altimeter
+    baro.begin();
+    // Initialize the OLED
+    display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+    // Turns on the display
+    display.display();
+    delay(1000);
+    // Gets height of rocket before launch in feet
+    baseHeight = 3.28084 * baro.getAltitude();
 }
 
 // Control loop for our Trinket
@@ -45,7 +45,9 @@ void loop()
     if (velocity < 0)
     {
       // activating the mechanical release system
-      myServo1.write(90);
+      for (int pos = -180; pos <= 18; pos ++) {
+          myServo1.write(pos);
+      }
       // writing our maxHeight to the display
       write(maxHeight);
       // traps the program in an infinite loop, essentially putting the trinket to 'sleep'
@@ -69,26 +71,36 @@ void setMaxHeight(double currentHeight)
 
 double getCurrentHeight()
 {
-  // starting the altimeter
-  baro.begin();
   // reading the altimeter in meters
   double altm = baro.getAltitude();
   // meters to feet conversion
   currentHeight = 3.28084 * altm;
-
-  return currentHeight;
+  //return the change in height in feet
+  return currentHeight - baseHeight;
 }
 
 //Displays the max height
 void write(double maxHeight)
 {
-  lcd.write("Max Height:");
-  lcd.setCursor(0,1);
-  string str = String(maxHeight) + " ft";
-  lcd.write(str);
+    // Clears the display
+    display.clearDisplay();
+    // Sets the text size
+    display.setTextSize(1);
+    // Sets the text color
+    display.setTextColor(WHITE);  // I dont think we need this
+    // Set cursor position 1
+    display.setCursor(0,0);
+    // Prints to display
+    display.print("Max Altitude");
+    // Sets cursor for new line
+    display.setCursor(0,8);
+    // Prints altitude
+    display.print(String(maxHeight));
+    // Turns on display
+    display.display();
 }
 
-// Gets the velocity of the Rocket (in ft/ms)
+//Gets the velocity of the Rocket (in ft/ms)
 double checkVelocity()
 {
   double velocity = 0;
@@ -105,13 +117,13 @@ double checkVelocity()
   return velocity;
 }
 
-volatile uint8_t counter = 0;
-SIGNAL(TIMER0_COMPA_vect) {
-  // this gets called every 2 milliseconds
-  counter += 2;
-  // every 20 milliseconds, refresh the servos!
-  if (counter >= 20) {
-    counter = 0;
-    myServo1.refresh();
-  }
-}
+// volatile uint8_t counter = 0;
+// SIGNAL(TIMER0_COMPA_vect) {
+//   // this gets called every 2 milliseconds
+//   counter += 2;
+//   // every 20 milliseconds, refresh the servos!
+//   if (counter >= 20) {
+//     counter = 0;
+//     myServo1.refresh();
+//   }
+// }
