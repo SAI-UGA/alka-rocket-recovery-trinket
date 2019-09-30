@@ -4,16 +4,22 @@
 #include <Adafruit_MPL3115A2.h>
 #include <Servo.h>
 
+// Servo object to control the PWM signal
 Servo myServo1;
 double maxHeight = 0;
 bool start = false;
-double startVelocity = 15; // in ft/s
+double startVelocity = 10; // in ft/s
 double currentHeight = 0;
 double velocity = 0;
+/** Base Height for our altimeter to get a more accurate max height 
+ * (Athens, GA is 600 ft. above sea level, so we were getting 600 ft. on the ground)
+ */
 double baseHeight = 0;
 double altimeterPrev = 0, altimeterCurrent = 0;
 double timePrev = 0, timeCurrent = 0;
+// Creating the display object or our OLED library
 Adafruit_SSD1306 display = Adafruit_SSD1306(128, 32, &Wire, -1);
+// Creating the barometer object for our altimeter library
 Adafruit_MPL3115A2 baro = Adafruit_MPL3115A2();
 
 // Boot setup
@@ -37,30 +43,35 @@ void setup()
 // Control loop for our Trinket
 void loop()
 {
-  // launch detection
+  // Delay our loop by 20 ms to prevent the micropressor from locking up
+  delay(20);
 
-  Serial.println("Sanity Check");
+  // launch detection
   if (checkVelocity() > startVelocity)
   {
       start = true;
-      myServo1.attach(3);
-      myServo1.write(0);
+      myServo1.attach(3); // attaching the servo to digital pin 3
   }
 
   while (start)
   {
-
+    // Delay our loop by 20 ms to prevent the microprocessor from locking up
     delay(20);
 
+    // Updating the velocity to check if the rocket if post-apogee
     velocity = checkVelocity();
-    if (velocity < -15)
+
+    // Logic that determine if the rocket is post-apogee (negative velocity acceleration)
+    if (velocity < -10) // velocity is in ft/s
     {
       // activating the mechanical release system
+      myServo1.write(0);
       myServo1.write(90);
 
       // writing our maxHeight to the display
       write(maxHeight);
-      // traps the program in an infinite loop, essentially putting the trinket to 'sleep'
+
+      // traps the program in an infinite loop, essentially putting the nano to 'sleep'
       while(true)
       {
       }
@@ -79,6 +90,7 @@ void setMaxHeight(double currentHeight)
   }
 }
 
+// Returns the current height of our rocket by reading the altimeter
 double getCurrentHeight()
 {
   // reading the altimeter in meters
