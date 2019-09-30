@@ -6,48 +6,58 @@
 
 Servo myServo1;
 double maxHeight = 0;
+bool start = false;
+double startVelocity = 15; // in ft/s
 double currentHeight = 0;
 double velocity = 0;
 double baseHeight = 0;
+double altimeterPrev = 0, altimeterCurrent = 0;
+double timePrev = 0, timeCurrent = 0;
 Adafruit_SSD1306 display = Adafruit_SSD1306(128, 32, &Wire, -1);
 Adafruit_MPL3115A2 baro = Adafruit_MPL3115A2();
 
 // Boot setup
 void setup()
 {
+    Serial.begin(9600);
     // Attaching the servo output to pin #1
-    myServo1.attach(3);
+
     // starting the altimeter
     baro.begin();
     // Initialize the OLED
     display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
     // Turns on the display
     display.display();
-    delay(1000);
     // Gets height of rocket before launch in feet
     baseHeight = 3.28084 * baro.getAltitude();
+    altimeterCurrent=getCurrentHeight();
+    timeCurrent=millis()/1000;
 }
 
 // Control loop for our Trinket
 void loop()
 {
   // launch detection
-  bool start = false;
-  double startVelocity = 3.28084; // in ft/s (1 m/s)
-  if (checkVelocity() >= startVelocity)
+
+  Serial.println("Sanity Check");
+  if (checkVelocity() > startVelocity)
   {
-    start = true;
+      start = true;
+      myServo1.attach(3);
+      myServo1.write(0);
   }
 
   while (start)
   {
+
+    delay(20);
+
     velocity = checkVelocity();
-    if (velocity < 0)
+    if (velocity < -15)
     {
       // activating the mechanical release system
-      for (int pos = -180; pos <= 18; pos ++) {
-          myServo1.write(pos);
-      }
+      myServo1.write(90);
+
       // writing our maxHeight to the display
       write(maxHeight);
       // traps the program in an infinite loop, essentially putting the trinket to 'sleep'
@@ -100,30 +110,27 @@ void write(double maxHeight)
     display.display();
 }
 
-//Gets the velocity of the Rocket (in ft/ms)
-double checkVelocity()
-{
-  double velocity = 0;
-  //gets the height in feet
-  double altimeterIntital = getCurrentHeight();
-  //gets the current time milliseconds
-  double initalTime = millis()/1000;
-  //find the change in time between the last mills call
-  double deltaTime = (millis()/1000) - initalTime;
-  //calculates the "instintanious" rate of change of the rocket
-  velocity = (getCurrentHeight() - altimeterIntital)/deltaTime;
-  velocity = velocity / 1000; // converting the velocity to ft/s
-  setMaxHeight(getCurrentHeight());
-  return velocity;
+// Gets the rocket velocity
+double checkVelocity() {
+    // Sets previous height to the current height
+    altimeterPrev = altimeterCurrent;
+    // Sets the previous time to the current time
+    timePrev=timeCurrent;
+    // Gets the current height
+    altimeterCurrent = getCurrentHeight();
+    // Gets the current time
+    timeCurrent=(double)millis()/1000;
+    // Updates max height
+    if(altimeterCurrent>altimeterPrev) {
+        setMaxHeight(altimeterCurrent);
+    }
+    // Finds the change in time
+    double delta = timeCurrent-timePrev;
+    // Calculates velocity if change in time is greater than 0;
+    double velocity =  (altimeterCurrent-altimeterPrev)/(delta>0?delta:20);
+    return velocity;
 }
 
-// volatile uint8_t counter = 0;
-// SIGNAL(TIMER0_COMPA_vect) {
-//   // this gets called every 2 milliseconds
-//   counter += 2;
-//   // every 20 milliseconds, refresh the servos!
-//   if (counter >= 20) {
-//     counter = 0;
-//     myServo1.refresh();
-//   }
+// double checkVelocityAccel(){
+//
 // }
