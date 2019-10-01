@@ -3,6 +3,7 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_MPL3115A2.h>
 #include <Servo.h>
+#include <MPU6050.h>
 
 // Servo object to control the PWM signal
 Servo myServo1;
@@ -122,27 +123,27 @@ void write(double maxHeight)
     display.display();
 }
 
-// Gets the rocket velocity
-double checkVelocity() {
-    // Sets previous height to the current height
-    altimeterPrev = altimeterCurrent;
-    // Sets the previous time to the current time
-    timePrev=timeCurrent;
-    // Gets the current height
-    altimeterCurrent = getCurrentHeight();
-    // Gets the current time
-    timeCurrent=(double)millis()/1000;
-    // Updates max height
-    if(altimeterCurrent>altimeterPrev) {
-        setMaxHeight(altimeterCurrent);
-    }
-    // Finds the change in time
-    double delta = timeCurrent-timePrev;
-    // Calculates velocity if change in time is greater than 0;
-    double velocity =  (altimeterCurrent-altimeterPrev)/(delta>0?delta:20);
-    return velocity;
-}
+// // Gets the rocket velocity
+// double checkVelocity() {
+//     // Sets previous height to the current height
+//     altimeterPrev = altimeterCurrent;
+//     // Sets the previous time to the current time
+//     timePrev=timeCurrent;
+//     // Gets the current height
+//     altimeterCurrent = getCurrentHeight();
+//     // Gets the current time
+//     timeCurrent=(double)millis()/1000;
+//     // Updates max height
+//     if(altimeterCurrent>altimeterPrev) {
+//         setMaxHeight(altimeterCurrent);
+//     }
+//     // Finds the change in time
+//     double delta = timeCurrent-timePrev;
+//     // Calculates velocity if change in time is greater than 0;
+//     double velocity =  (altimeterCurrent-altimeterPrev)/(delta>0?delta:20);
+//     return velocity;
 
-// double checkVelocityAccel(){
-//
-// }
+    double checkVelocity() {
+
+    }
+}
