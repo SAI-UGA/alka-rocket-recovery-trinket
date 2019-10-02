@@ -159,7 +159,3 @@ void loop()
 //     // Calculates velocity if change in time is greater than 0;
 //     double velocity =  (altimeterCurrent-altimeterPrev)/(delta>0?delta:20);
 //     return velocity;
-
-double checkVelocity() {
-    return accel.getAccelerationY();
-}
