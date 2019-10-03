@@ -23,23 +23,23 @@ double zInitial;
 
 
 // Boot setup
-void setup()
-{
+void setup() {
   Wire.begin();
   // Begin talking to Gyro at address 0x68
   Wire.beginTransmission(MPU_addr);
+  // Sets the register to be acceseed
   Wire.write(0x6B);
+  // Writes the 0x6B register to 0 setting clock to 8MHz
   Wire.write(0);
   Wire.endTransmission(true);
   Serial.begin(9600);
+  // Calls function to set initial orientation
   setBase();
   Serial.println("Done");
-
 }
 
 // Control loop for our Arduino nano
-void loop()
-{
+void loop() {
   // Reads the gyro
   readGyro();
   // If the Gyro detects a orientation change of 90 degrees of more deploy chute
@@ -56,11 +56,13 @@ void loop()
 void readGyro() {
     // begin transmiting to the Gyro
     Wire.beginTransmission(MPU_addr);
+    // Sets the register to be accessed
     Wire.write(0x3B);
+    // Keeps the bus open
     Wire.endTransmission(false);
     // Request the registries for orientation information (device, number of registries, strop when done)
     Wire.requestFrom(MPU_addr,14,true); // default (MPU_addr,14,true)
-    // I2C is an 8 bit bus and the Gyro outputs 16 bit numbers. Shifts to get full number
+    // Gyro registers store 8bit values, but takes 16 bit readings
     AcX=Wire.read()<<8|Wire.read();
     AcY=Wire.read()<<8|Wire.read();
     AcZ=Wire.read()<<8|Wire.read();
@@ -77,7 +79,7 @@ void readGyro() {
     // Serial.println("yAngle: " + String(y));
     // Serial.println("zAngle: " + String(z));
 
-    delay(400);
+    //delay(200);
 }
 // Gets the average value of the x and z angles
 void setBase() {
@@ -85,7 +87,7 @@ void setBase() {
     int xAv = 0;
     int zAv = 0;
     // Sets the number of values to read
-    int numValues = 100
+    int numValues = 100;
     for (int start = 0; start < numValues; start++) {
         readGyro();
         xAv = xAv + x;
