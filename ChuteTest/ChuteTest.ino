@@ -1,6 +1,8 @@
 #include <Wire.h>
 #include <Servo.h>
 
+Servo servi = new Servo()
+
 // Sets the gyro address to a variable
 const int MPU_addr=0x68;
 
@@ -47,6 +49,7 @@ void loop() {
   Serial.println("zInitial: " + String(zInitial));
   if(abs(x-xInitial) >= 270 || abs(x-xInitial) >= 85
   || abs(z-zInitial) >= 270 || abs(z-zInitial) >= 85 ) {
+
       Serial.println("DEPLOY");
   } else {
       Serial.println("NOT DEPLOYED");
