@@ -1,7 +1,10 @@
 #include <Wire.h>
 #include <Servo.h>
 
-Servo servi = new Servo()
+// Indicator Light
+#define light 4;
+
+Servo servo;
 
 // Sets the gyro address to a variable
 const int MPU_addr=0x68;
@@ -26,18 +29,20 @@ double zInitial;
 
 // Boot setup
 void setup() {
-  Wire.begin();
-  // Begin talking to Gyro at address 0x68
-  Wire.beginTransmission(MPU_addr);
-  // Sets the register to be acceseed
-  Wire.write(0x6B);
-  // Writes the 0x6B register to 0 setting clock to 8MHz
-  Wire.write(0);
-  Wire.endTransmission(true);
-  Serial.begin(9600);
-  // Calls function to set initial orientation
-  setBase();
-  Serial.println("Done");
+    // Indicate Nano on
+    digitalWrite(light, HIGH);
+    Wire.begin();
+    // Begin talking to Gyro at address 0x68
+    Wire.beginTransmission(MPU_addr);
+    // Sets the register to be acceseed
+    Wire.write(0x6B);
+    // Writes the 0x6B register to 0 setting clock to 8MHz
+    Wire.write(0);
+    Wire.endTransmission(true);
+    Serial.begin(9600);
+    // Calls function to set initial orientation
+    setBase();
+    //Serial.println("Done");
 }
 
 // Control loop for our Arduino nano
@@ -45,14 +50,19 @@ void loop() {
   // Reads the gyro
   readGyro();
   // If the Gyro detects a orientation change of 90 degrees of more deploy chute
-  Serial.println("xInitial: " + String(xInitial));
-  Serial.println("zInitial: " + String(zInitial));
+  // Serial.println("xInitial: " + String(xInitial));
+  // Serial.println("zInitial: " + String(zInitial));
   if(abs(x-xInitial) >= 270 || abs(x-xInitial) >= 85
   || abs(z-zInitial) >= 270 || abs(z-zInitial) >= 85 ) {
+      servo.attach(3);
+      // Serial.println("DEPLOY");
+      servo.write(180);
+      while(true){
 
-      Serial.println("DEPLOY");
+      }
   } else {
-      Serial.println("NOT DEPLOYED");
+      // Serial.println("NOT DEPLOYED");
+      servo.write(0);
   }
 }
 
