@@ -2,7 +2,7 @@
 #include <Servo.h>
 
 // Indicator Light
-#define light 4;
+#define light 4
 
 Servo servo;
 
@@ -40,6 +40,8 @@ void setup() {
     Wire.write(0);
     Wire.endTransmission(true);
     Serial.begin(9600);
+    servo.attach(3);
+    servo.write(0);
     // Calls function to set initial orientation
     setBase();
     //Serial.println("Done");
@@ -54,9 +56,8 @@ void loop() {
   // Serial.println("zInitial: " + String(zInitial));
   if(abs(x-xInitial) >= 270 || abs(x-xInitial) >= 85
   || abs(z-zInitial) >= 270 || abs(z-zInitial) >= 85 ) {
-      servo.attach(3);
       // Serial.println("DEPLOY");
-      servo.write(180);
+      servo.write(90);
       while(true){
 
       }
